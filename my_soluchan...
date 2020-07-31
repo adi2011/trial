@@ -1,0 +1,102 @@
+#include<bits/stdc++.h>
+
+using namespace std;
+struct Workshops
+{
+    Workshops(int start = 0, int dur = 0, int end = 0) :
+        start_time(start), duration(dur), end_time(end)
+    {
+    }
+    int start_time;
+    int end_time;
+    int duration;
+
+    void setTimes(int s, int d, int e)
+    {
+        start_time = s;
+        duration = d;
+        end_time = e;
+    }
+};
+
+struct Available_Workshops
+{
+    Available_Workshops() :
+        lund(NULL), nSize(0)
+    {
+    }
+    ~Available_Workshops()
+    {
+        if (lund)
+            delete[] lund;
+        nSize = 0;
+    }
+
+    Workshops *lund;
+    int nSize;
+};
+typedef Available_Workshops AW;
+typedef Workshops WS;
+
+AW* initialize(int* st, int* dr, int size)
+{
+    AW* chut = new AW;
+    chut->lund = new WS[size];
+    chut->nSize = size;
+
+    for (int i = 0; i < size; ++i)
+        chut->lund[i].setTimes(st[i], dr[i], st[i] + dr[i]);
+
+    return chut;
+}
+
+const int CalculateMaxWorkshops(AW *chut) {
+    int *count = new int[1010];
+    WS **WSstart = new WS *[1010];
+    for (int i = 0; i < 1010; ++i) {
+        WSstart[i] = 0;
+        count[i] = 0;
+    }
+
+    for (int i = 0; i < chut->nSize; ++i) {
+        int start_time = chut->lund[i].start_time;
+        if (!WSstart[start_time])
+            WSstart[start_time] = &chut->lund[i];
+        else if (WSstart[start_time]->duration > chut->lund[i].duration)
+            WSstart[start_time] = &chut->lund[i];
+    }
+
+    for (int i = 1000; i >= 0; --i) {
+        if (!WSstart[i]) {
+            count[i] = count[i + 1];
+            continue;
+        }
+        if (WSstart[i]->end_time <= 1000)
+            count[i] = (1 + count[WSstart[i]->end_time] > count[i + 1]
+                ? 1 + count[WSstart[i]->end_time]
+                : count[i + 1]);
+        else
+            count[i] = 1 > count[i + 1] ? 1 : count[i + 1];
+    }
+    return count[0];
+}
+
+int main(int argc, char *argv[]) {
+    int n; // number of workshops
+    cin >> n;
+    // create arrays of unknown size n
+    int* start_time = new int[n];
+    int* duration = new int[n];
+
+    for(int i=0; i < n; i++){
+        cin >> start_time[i];
+    }
+    for(int i = 0; i < n; i++){
+        cin >> duration[i];
+    }
+
+    Available_Workshops * ptr;
+    ptr = initialize(start_time,duration, n);
+    cout << CalculateMaxWorkshops(ptr) << endl;
+    return 0;
+}
